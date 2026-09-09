@@ -1,0 +1,219 @@
+using System;
+using System.Collections.Generic;
+
+public class DiscountCalculator
+{
+    // Overloading 1
+    // Giảm mặc định 5%
+    public decimal ApplyDiscount(decimal totalAmount)
+    {
+        return totalAmount * 0.95m;
+    }
+
+    // Overloading 2
+    // Giảm theo phần trăm tùy chỉnh
+    public decimal ApplyDiscount(
+        decimal totalAmount,
+        double percentage)
+    {
+        if (percentage < 0 || percentage > 100)
+            throw new ArgumentException(
+                "Percentage phải nằm trong khoảng 0 đến 100.");
+
+        return totalAmount *
+               (1 - (decimal)percentage / 100);
+    }
+
+    // Overloading 3
+    // Voucher tiền mặt
+    public decimal ApplyDiscount(
+        decimal totalAmount,
+        decimal fixedVoucher,
+        decimal minimumOrder)
+    {
+        if (totalAmount >= minimumOrder)
+        {
+            return Math.Max(
+                0,
+                totalAmount - fixedVoucher);
+        }
+
+        return totalAmount;
+    }
+}
+
+public class DeliveryService
+{
+    public string OrderId { get; set; }
+    public double DistanceKm { get; set; }
+
+    public DeliveryService(
+        string orderId,
+        double distanceKm)
+    {
+        OrderId = orderId;
+        DistanceKm = distanceKm;
+    }
+
+    // Cho phép lớp con ghi đè
+    public virtual decimal CalculateShippingFee()
+    {
+        return (decimal)DistanceKm * 5000;
+    }
+}
+
+public class ExpressDelivery : DeliveryService
+{
+    public ExpressDelivery(
+        string orderId,
+        double distanceKm)
+        : base(orderId, distanceKm)
+    {
+    }
+
+    public override decimal CalculateShippingFee()
+    {
+        decimal basicFee =
+            (decimal)DistanceKm * 5000;
+
+        return basicFee * 1.5m + 20000;
+    }
+}
+
+public class EcoDelivery : DeliveryService
+{
+    public EcoDelivery(
+        string orderId,
+        double distanceKm)
+        : base(orderId, distanceKm)
+    {
+    }
+
+    public override decimal CalculateShippingFee()
+    {
+        decimal basicFee =
+            (decimal)DistanceKm * 5000;
+
+        if (DistanceKm > 10)
+        {
+            return basicFee * 0.9m;
+        }
+
+        return basicFee;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Console.OutputEncoding = System.Text.Encoding.UTF8;
+
+        Console.WriteLine(
+            "===== BÀI 3: ĐA HÌNH =====");
+        Console.WriteLine();
+
+        // =================================
+        // PHẦN 1: METHOD OVERLOADING
+        // =================================
+
+        Console.WriteLine(
+            "===== METHOD OVERLOADING =====");
+
+        DiscountCalculator calculator =
+            new DiscountCalculator();
+
+        decimal totalAmount = 1000000;
+
+        // Gọi phiên bản 1
+        decimal result1 =
+            calculator.ApplyDiscount(totalAmount);
+
+        Console.WriteLine(
+            "Đơn hàng: " +
+            totalAmount.ToString("N0") +
+            " VNĐ");
+
+        Console.WriteLine(
+            "Giảm mặc định 5%: " +
+            result1.ToString("N0") +
+            " VNĐ");
+
+        // Gọi phiên bản 2
+        decimal result2 =
+            calculator.ApplyDiscount(
+                totalAmount,
+                10);
+
+        Console.WriteLine(
+            "Giảm 10%: " +
+            result2.ToString("N0") +
+            " VNĐ");
+
+        // Gọi phiên bản 3
+        decimal result3 =
+            calculator.ApplyDiscount(
+                totalAmount,
+                100000,
+                500000);
+
+        Console.WriteLine(
+            "Voucher 100.000 VNĐ: " +
+            result3.ToString("N0") +
+            " VNĐ");
+
+        Console.WriteLine();
+
+        // =================================
+        // PHẦN 2: RUNTIME POLYMORPHISM
+        // =================================
+
+        Console.WriteLine(
+            "===== RUNTIME POLYMORPHISM =====");
+
+        List<DeliveryService> deliveries =
+            new List<DeliveryService>();
+
+        // Thêm đối tượng ExpressDelivery
+        deliveries.Add(
+            new ExpressDelivery(
+                "DH001",
+                5));
+
+        // Thêm đối tượng EcoDelivery
+        deliveries.Add(
+            new EcoDelivery(
+                "DH002",
+                15));
+
+        // Thêm đối tượng DeliveryService thường
+        deliveries.Add(
+            new DeliveryService(
+                "DH003",
+                8));
+
+        foreach (DeliveryService delivery in deliveries)
+        {
+            Console.WriteLine(
+                "Mã đơn hàng: " +
+                delivery.OrderId);
+
+            Console.WriteLine(
+                "Khoảng cách: " +
+                delivery.DistanceKm +
+                " km");
+
+            Console.WriteLine(
+                "Phí vận chuyển: " +
+                delivery.CalculateShippingFee()
+                    .ToString("N0") +
+                " VNĐ");
+
+            Console.WriteLine(
+                "----------------------------");
+        }
+
+        Console.WriteLine();
+        Console.WriteLine("Kết thúc Bài 3.");
+    }
+}
