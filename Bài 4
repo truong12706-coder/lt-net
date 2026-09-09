@@ -1,0 +1,227 @@
+using System;
+
+public interface IPayable
+{
+    bool ProcessPayment(decimal amount);
+}
+
+public interface IRefundable
+{
+    bool ProcessRefund(
+        decimal amount,
+        string reason);
+}
+
+public abstract class PaymentGateway
+{
+    public string TransactionId { get; init; }
+
+    public DateTime CreationDate { get; init; }
+
+    public string Status { get; protected set; }
+
+    protected PaymentGateway(string transactionId)
+    {
+        TransactionId = transactionId;
+        CreationDate = DateTime.Now;
+        Status = "Pending";
+    }
+
+    public abstract void ValidateConnection();
+
+    public virtual void LogTransaction(string message)
+    {
+        Console.WriteLine(
+            "[" + TransactionId + "] " +
+            message);
+    }
+}
+
+public class MomoPayment :
+    PaymentGateway,
+    IPayable,
+    IRefundable
+{
+    public string PhoneNumber { get; set; }
+
+    public MomoPayment(
+        string transactionId,
+        string phoneNumber)
+        : base(transactionId)
+    {
+        PhoneNumber = phoneNumber;
+    }
+
+    public override void ValidateConnection()
+    {
+        Console.WriteLine(
+            "Đang kiểm tra kết nối API MoMo...");
+
+        Console.WriteLine(
+            "Kết nối API MoMo thành công.");
+    }
+
+    public bool ProcessPayment(decimal amount)
+    {
+        if (amount <= 0)
+        {
+            LogTransaction(
+                "Thanh toán thất bại: số tiền không hợp lệ.");
+
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(PhoneNumber))
+        {
+            LogTransaction(
+                "Thanh toán thất bại: số điện thoại không hợp lệ.");
+
+            return false;
+        }
+
+        Status = "Success";
+
+        LogTransaction(
+            "Thanh toán thành công: " +
+            amount.ToString("N0") +
+            " VNĐ");
+
+        return true;
+    }
+
+    public bool ProcessRefund(
+        decimal amount,
+        string reason)
+    {
+        if (amount <= 0)
+        {
+            LogTransaction(
+                "Hoàn tiền thất bại: số tiền không hợp lệ.");
+
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            LogTransaction(
+                "Hoàn tiền thất bại: chưa nhập lý do.");
+
+            return false;
+        }
+
+        Status = "Refunded";
+
+        LogTransaction(
+            "Hoàn tiền: " +
+            amount.ToString("N0") +
+            " VNĐ");
+
+        LogTransaction(
+            "Lý do: " + reason);
+
+        return true;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Console.OutputEncoding = System.Text.Encoding.UTF8;
+
+        Console.WriteLine(
+            "===== BÀI 4: CỔNG THANH TOÁN =====");
+        Console.WriteLine();
+
+        // ==================================
+        // TẠO ĐỐI TƯỢNG MOMO
+        // ==================================
+
+        MomoPayment momo =
+            new MomoPayment(
+                "TXN001",
+                "0987654321");
+
+        Console.WriteLine("THÔNG TIN GIAO DỊCH");
+        Console.WriteLine(
+            "Mã giao dịch: " +
+            momo.TransactionId);
+
+        Console.WriteLine(
+            "Ngày tạo: " +
+            momo.CreationDate);
+
+        Console.WriteLine(
+            "Số điện thoại: " +
+            momo.PhoneNumber);
+
+        Console.WriteLine(
+            "Trạng thái: " +
+            momo.Status);
+
+        Console.WriteLine();
+
+        // ==================================
+        // KIỂM TRA KẾT NỐI
+        // ==================================
+
+        Console.WriteLine(
+            "===== KIỂM TRA KẾT NỐI =====");
+
+        momo.ValidateConnection();
+
+        Console.WriteLine();
+
+        // ==================================
+        // ÉP KIỂU SANG IPayable
+        // ==================================
+
+        Console.WriteLine(
+            "===== THANH TOÁN =====");
+
+        IPayable payable = momo;
+
+        bool paymentResult =
+            payable.ProcessPayment(500000);
+
+        Console.WriteLine(
+            "Kết quả thanh toán: " +
+            (paymentResult
+                ? "Thành công"
+                : "Thất bại"));
+
+        Console.WriteLine(
+            "Trạng thái hiện tại: " +
+            momo.Status);
+
+        Console.WriteLine();
+
+        // ==================================
+        // ÉP KIỂU SANG IRefundable
+        // ==================================
+
+        Console.WriteLine(
+            "===== HOÀN TIỀN =====");
+
+        IRefundable refundable = momo;
+
+        bool refundResult =
+            refundable.ProcessRefund(
+                200000,
+                "Khách hàng yêu cầu hoàn tiền");
+
+        Console.WriteLine(
+            "Kết quả hoàn tiền: " +
+            (refundResult
+                ? "Thành công"
+                : "Thất bại"));
+
+        Console.WriteLine(
+            "Trạng thái hiện tại: " +
+            momo.Status);
+
+        Console.WriteLine();
+
+        Console.WriteLine("Kết thúc Bài 4.");
+    }
+}
