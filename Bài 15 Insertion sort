@@ -1,0 +1,106 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+struct KhachHang {
+    int maKH;
+    string tenKH;
+    string sdt;
+    double tongTien;
+};
+
+void nhap(KhachHang ds[], int n) {
+    for (int i = 0; i < n; i++) {
+        cout << "\nKhach hang thu " << i + 1 << ":\n";
+
+        cout << "Ma KH: ";
+        cin >> ds[i].maKH;
+        cin.ignore();
+
+        cout << "Ten KH: ";
+        getline(cin, ds[i].tenKH);
+
+        cout << "SDT: ";
+        getline(cin, ds[i].sdt);
+
+        cout << "Tong tien thanh toan: ";
+        cin >> ds[i].tongTien;
+    }
+}
+
+void xuat(KhachHang ds[], int n) {
+    cout << "\nDanh sach khach hang:\n";
+    for (int i = 0; i < n; i++) {
+        cout << ds[i].maKH << " | "
+             << ds[i].tenKH << " | "
+             << ds[i].sdt << " | "
+             << ds[i].tongTien << endl;
+    }
+}
+
+void insertionSort(KhachHang ds[], int n) {
+    for (int i = 1; i < n; i++) {
+        KhachHang key = ds[i];
+        int j = i - 1;
+
+        while (j >= 0 && ds[j].tongTien > key.tongTien) {
+            ds[j + 1] = ds[j];
+            j--;
+        }
+
+        ds[j + 1] = key;
+    }
+}
+
+int binarySearch(KhachHang ds[], int n, double x) {
+    int left = 0, right = n - 1;
+
+    while (left <= right) {
+        int mid = (left + right) / 2;
+
+        if (ds[mid].tongTien == x)
+            return mid;
+        else if (ds[mid].tongTien < x)
+            left = mid + 1;
+        else
+            right = mid - 1;
+    }
+
+    return -1;
+}
+
+int main() {
+    int n;
+    cout << "Nhap so khach hang: ";
+    cin >> n;
+
+    KhachHang ds[100];
+
+    nhap(ds, n);
+
+    cout << "\nDanh sach vua nhap:";
+    xuat(ds, n);
+
+    insertionSort(ds, n);
+
+    cout << "\n\nDanh sach sau khi sap xep tang dan theo tong tien:";
+    xuat(ds, n);
+
+    double X;
+    cout << "\nNhap tong tien can tim: ";
+    cin >> X;
+
+    int vt = binarySearch(ds, n, X);
+
+    if (vt != -1) {
+        cout << "\nTim thay:\n";
+        cout << ds[vt].maKH << " | "
+             << ds[vt].tenKH << " | "
+             << ds[vt].sdt << " | "
+             << ds[vt].tongTien << endl;
+    } else {
+        cout << "\nKhong tim thay khach hang co tong tien = " << X;
+    }
+
+    return 0;
+}
